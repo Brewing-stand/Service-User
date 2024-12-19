@@ -62,6 +62,7 @@ namespace Service_User.Repositories
                 // Update properties
                 existingUser.username = updatedUser.username;
                 existingUser.gitId = updatedUser.gitId;
+                existingUser.avatar = updatedUser.avatar;
 
                 _context.Users.Update(existingUser);
                 await _context.SaveChangesAsync();
@@ -107,6 +108,19 @@ namespace Service_User.Repositories
             catch (Exception ex)
             {
                 return Result.Fail<IQueryable<User>>($"Error retrieving users: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
+            }
+        }
+        
+        public async Task<Result<User>> GetUserByGitIdAsync(long gitId)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.gitId == gitId);
+                return Result.Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail(new List<string> { ex.Message });
             }
         }
     }

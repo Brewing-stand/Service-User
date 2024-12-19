@@ -10,5 +10,6 @@ namespace Service_User.Repositories
         Task<Result<User>> UpdateUserAsync(Guid userId, User updatedUser);
         Task<Result> DeleteUserAsync(Guid userId);
         Task<Result<IQueryable<User>>> GetAllUsersAsync();
+        Task<Result<User>> GetUserByGitIdAsync(long gitId);
     }
 }

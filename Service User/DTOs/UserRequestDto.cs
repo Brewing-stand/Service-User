@@ -2,6 +2,7 @@
 
 public class UserRequestDto
 {
-    public Guid GitId { get; set; }
+    public long GitId { get; set; }
     public string Username { get; set; }
+    public string Avatar { get; set; }
 }

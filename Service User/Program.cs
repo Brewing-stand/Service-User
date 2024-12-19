@@ -18,7 +18,7 @@ builder.Services.AddAutoMapper(typeof(UserMappingProfile)); // Register AutoMapp
 
 // database
 builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("CosmosDbCluster")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresSQL_DB")));
 
 // services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
