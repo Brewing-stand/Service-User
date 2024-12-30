@@ -16,11 +16,11 @@ builder.Services.AddSwaggerGen();
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(UserMappingProfile)); // Register AutoMapper profile
 
-// database
+// Database
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresSQL_DB")));
 
-// services
+// Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // CORS

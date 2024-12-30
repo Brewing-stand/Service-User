@@ -21,11 +21,11 @@ namespace Service_User.Repositories
             {
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                return Result.Ok(user);  // Correct use of FluentResults.Result.Ok()
+                return Result.Ok(user);
             }
             catch (Exception ex)
             {
-                return Result.Fail<User>($"Error creating user: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
+                return Result.Fail<User>($"Error creating user: {ex.Message}"); 
             }
         }
 
@@ -38,13 +38,13 @@ namespace Service_User.Repositories
                     .FirstOrDefaultAsync(u => u.id == userId);
                 
                 if (user == null)
-                    return Result.Fail<User>("User not found.");  // Correct use of FluentResults.Result.Fail()
+                    return Result.Fail<User>("User not found."); 
                 
-                return Result.Ok(user);  // Correct use of FluentResults.Result.Ok()
+                return Result.Ok(user);
             }
             catch (Exception ex)
             {
-                return Result.Fail<User>($"Error retrieving user: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
+                return Result.Fail<User>($"Error retrieving user: {ex.Message}");
             }
         }
 
@@ -57,7 +57,7 @@ namespace Service_User.Repositories
                     .FirstOrDefaultAsync(u => u.id == userId);
                 
                 if (existingUser == null)
-                    return Result.Fail<User>("User not found.");  // Correct use of FluentResults.Result.Fail()
+                    return Result.Fail<User>("User not found."); 
 
                 // Update properties
                 existingUser.username = updatedUser.username;
@@ -67,11 +67,11 @@ namespace Service_User.Repositories
                 _context.Users.Update(existingUser);
                 await _context.SaveChangesAsync();
 
-                return Result.Ok(existingUser);  // Correct use of FluentResults.Result.Ok()
+                return Result.Ok(existingUser); 
             }
             catch (Exception ex)
             {
-                return Result.Fail<User>($"Error updating user: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
+                return Result.Fail<User>($"Error updating user: {ex.Message}");
             }
         }
 
@@ -84,43 +84,30 @@ namespace Service_User.Repositories
                     .FirstOrDefaultAsync(u => u.id == userId);
                 
                 if (user == null)
-                    return Result.Fail("User not found.");  // Correct use of FluentResults.Result.Fail()
+                    return Result.Fail("User not found.");
 
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
 
-                return Result.Ok();  // Correct use of FluentResults.Result.Ok()
+                return Result.Ok();
             }
             catch (Exception ex)
             {
-                return Result.Fail($"Error deleting user: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
+                return Result.Fail($"Error deleting user: {ex.Message}");
             }
         }
 
-        // Get all users (optional)
+        // Get all users
         public async Task<Result<IQueryable<User>>> GetAllUsersAsync()
         {
             try
             {
                 var users = _context.Users.AsQueryable();
-                return Result.Ok(users);  // Correct use of FluentResults.Result.Ok()
+                return Result.Ok(users);
             }
             catch (Exception ex)
             {
-                return Result.Fail<IQueryable<User>>($"Error retrieving users: {ex.Message}");  // Correct use of FluentResults.Result.Fail()
-            }
-        }
-        
-        public async Task<Result<User>> GetUserByGitIdAsync(long gitId)
-        {
-            try
-            {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.gitId == gitId);
-                return Result.Ok(user);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail(new List<string> { ex.Message });
+                return Result.Fail<IQueryable<User>>($"Error retrieving users: {ex.Message}");
             }
         }
     }

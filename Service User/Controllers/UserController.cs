@@ -52,34 +52,6 @@ namespace Service_User.Controllers
                 return NotFound(result.Errors);
             }
         }
-        
-        // POST: api/User/LoginOrRegisterGit
-        [HttpPost("LoginOrRegisterGit")]
-        public async Task<IActionResult> CheckOrCreate([FromBody] UserRequestDto userRequestDto)
-        {
-            // Check if the user exists in the database
-            var existingUserResult = await _userRepository.GetUserByGitIdAsync(userRequestDto.GitId);
-
-            if (existingUserResult.IsSuccess && existingUserResult.Value != null)
-            {
-                // Map the existing user to a response DTO
-                var existingUserDto = _mapper.Map<UserResponseDto>(existingUserResult.Value);
-                return Ok(existingUserDto);
-            }
-
-            // If the user does not exist, create a new one
-            var newUser = _mapper.Map<User>(userRequestDto);
-            var createResult = await _userRepository.CreateUserAsync(newUser);
-
-            if (createResult.IsSuccess)
-            {
-                // Map the newly created user to a response DTO
-                var newUserDto = _mapper.Map<UserResponseDto>(createResult.Value);
-                return CreatedAtAction(nameof(Get), new { id = newUserDto.Id }, newUserDto);
-            }
-
-            return BadRequest(createResult.Errors);
-        }
 
         // POST api/<UserController>
         [HttpPost]
