@@ -40,7 +40,7 @@ namespace Service_User.Controllers
             if (userIdResult.IsFailed)
                 return Unauthorized(userIdResult.Errors);
 
-            var result = await _userRepository.GetUserByIdAsync(userIdResult.Value, userIdResult.Value);
+            var result = await _userRepository.GetUserByIdAsync(userIdResult.Value);
             if (result.IsSuccess)
             {
                 // Map User model to UserResponseDto
@@ -64,7 +64,7 @@ namespace Service_User.Controllers
             // Map UserRequestDto to User model
             var updatedUser = _mapper.Map<User>(userRequestDto);
 
-            var result = await _userRepository.UpdateUserAsync(userIdResult.Value, userIdResult.Value, updatedUser);
+            var result = await _userRepository.UpdateUserAsync(userIdResult.Value, updatedUser);
             if (result.IsSuccess)
             {
                 // Map updated User model to UserResponseDto
@@ -85,7 +85,7 @@ namespace Service_User.Controllers
             if (userIdResult.IsFailed)
                 return Unauthorized(userIdResult.Errors);
 
-            var result = await _userRepository.DeleteUserAsync(userIdResult.Value, userIdResult.Value);
+            var result = await _userRepository.DeleteUserAsync(userIdResult.Value);
             if (result.IsSuccess)
                 return NoContent(); // 204 No Content
             else

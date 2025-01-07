@@ -15,11 +15,8 @@ namespace Service_User.Repositories
         }
 
         // Read (by id) - Ensure the user can only get their own data
-        public async Task<Result<User>> GetUserByIdAsync(Guid userId, Guid requesterId)
+        public async Task<Result<User>> GetUserByIdAsync(Guid userId)
         {
-            if (userId != requesterId)
-                return Result.Fail<User>("Unauthorized access: You can only retrieve your own data.");
-
             try
             {
                 var user = await _context.Users
@@ -37,11 +34,8 @@ namespace Service_User.Repositories
         }
 
         // Update - Ensure the user can only update their own data
-        public async Task<Result<User>> UpdateUserAsync(Guid userId, Guid requesterId, User updatedUser)
+        public async Task<Result<User>> UpdateUserAsync(Guid userId, User updatedUser)
         {
-            if (userId != requesterId)
-                return Result.Fail<User>("Unauthorized access: You can only update your own data.");
-
             try
             {
                 var existingUser = await _context.Users
@@ -66,11 +60,8 @@ namespace Service_User.Repositories
         }
 
         // Delete - Ensure the user can only delete their own data
-        public async Task<Result> DeleteUserAsync(Guid userId, Guid requesterId)
+        public async Task<Result> DeleteUserAsync(Guid userId)
         {
-            if (userId != requesterId)
-                return Result.Fail("Unauthorized access: You can only delete your own data.");
-
             try
             {
                 var user = await _context.Users
