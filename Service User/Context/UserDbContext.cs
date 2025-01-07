@@ -43,10 +43,7 @@ namespace Service_User.Context
                 entity.Property(e => e.id)
                     .ValueGeneratedOnAdd()
                     .HasColumnName("id");
-
-                entity.Property(e => e.gitId)
-                    .HasColumnName("git_id"); // Ensure the column name is in lowercase
-
+                
                 entity.Property(e => e.username)
                     .HasColumnName("username"); // Ensure the column name is in lowercase
             });

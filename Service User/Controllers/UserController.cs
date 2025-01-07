@@ -3,9 +3,13 @@ using Service_User.Models;
 using Service_User.DTOs;
 using Service_User.Repositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using FluentResults;
 
 namespace Service_User.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -19,28 +23,24 @@ namespace Service_User.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/<UserController>
+        /// <summary>
+        /// Gets the authenticated user's ID from the JWT.
+        /// </summary>
+        private Result<Guid> GetUserId()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.TryParse(idClaim, out var userId) ? Result.Ok(userId) : Result.Fail<Guid>("Invalid user ID.");
+        }
+
+        // GET api/<UserController>
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var result = await _userRepository.GetAllUsersAsync();
-            if (result.IsSuccess)
-            {
-                // Map list of User models to list of UserResponseDto
-                var userResponseDtos = _mapper.Map<IEnumerable<UserResponseDto>>(result.Value);
-                return Ok(userResponseDtos);
-            }
-            else
-            {
-                return BadRequest(result.Errors);
-            }
-        }
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
 
-        // GET api/<UserController>/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(Guid id)
-        {
-            var result = await _userRepository.GetUserByIdAsync(id);
+            var result = await _userRepository.GetUserByIdAsync(userIdResult.Value, userIdResult.Value);
             if (result.IsSuccess)
             {
                 // Map User model to UserResponseDto
@@ -53,34 +53,18 @@ namespace Service_User.Controllers
             }
         }
 
-        // POST api/<UserController>
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UserRequestDto userRequestDto)
+        // PUT api/<UserController>
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] UserRequestDto userRequestDto)
         {
-            // Map UserRequestDto to User model
-            var user = _mapper.Map<User>(userRequestDto);
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
 
-            var result = await _userRepository.CreateUserAsync(user);
-            if (result.IsSuccess)
-            {
-                // Map User model to UserResponseDto to return the response
-                var userResponseDto = _mapper.Map<UserResponseDto>(result.Value);
-                return CreatedAtAction(nameof(Get), new { id = userResponseDto.Id }, userResponseDto);
-            }
-            else
-            {
-                return BadRequest(result.Errors);
-            }
-        }
-
-        // PUT api/<UserController>/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(Guid id, [FromBody] UserRequestDto userRequestDto)
-        {
             // Map UserRequestDto to User model
             var updatedUser = _mapper.Map<User>(userRequestDto);
 
-            var result = await _userRepository.UpdateUserAsync(id, updatedUser);
+            var result = await _userRepository.UpdateUserAsync(userIdResult.Value, userIdResult.Value, updatedUser);
             if (result.IsSuccess)
             {
                 // Map updated User model to UserResponseDto
@@ -93,13 +77,17 @@ namespace Service_User.Controllers
             }
         }
 
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        // DELETE api/<UserController>
+        [HttpDelete]
+        public async Task<IActionResult> Delete()
         {
-            var result = await _userRepository.DeleteUserAsync(id);
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
+
+            var result = await _userRepository.DeleteUserAsync(userIdResult.Value, userIdResult.Value);
             if (result.IsSuccess)
-                return NoContent();  // 204 No Content
+                return NoContent(); // 204 No Content
             else
                 return NotFound(result.Errors);
         }

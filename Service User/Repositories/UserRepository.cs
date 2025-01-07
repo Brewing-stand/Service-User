@@ -14,32 +14,20 @@ namespace Service_User.Repositories
             _context = context;
         }
 
-        // Create
-        public async Task<Result<User>> CreateUserAsync(User user)
+        // Read (by id) - Ensure the user can only get their own data
+        public async Task<Result<User>> GetUserByIdAsync(Guid userId, Guid requesterId)
         {
-            try
-            {
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-                return Result.Ok(user);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail<User>($"Error creating user: {ex.Message}"); 
-            }
-        }
+            if (userId != requesterId)
+                return Result.Fail<User>("Unauthorized access: You can only retrieve your own data.");
 
-        // Read (by id)
-        public async Task<Result<User>> GetUserByIdAsync(Guid userId)
-        {
             try
             {
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.id == userId);
-                
+
                 if (user == null)
-                    return Result.Fail<User>("User not found."); 
-                
+                    return Result.Fail<User>("User not found.");
+
                 return Result.Ok(user);
             }
             catch (Exception ex)
@@ -48,26 +36,28 @@ namespace Service_User.Repositories
             }
         }
 
-        // Update
-        public async Task<Result<User>> UpdateUserAsync(Guid userId, User updatedUser)
+        // Update - Ensure the user can only update their own data
+        public async Task<Result<User>> UpdateUserAsync(Guid userId, Guid requesterId, User updatedUser)
         {
+            if (userId != requesterId)
+                return Result.Fail<User>("Unauthorized access: You can only update your own data.");
+
             try
             {
                 var existingUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.id == userId);
-                
+
                 if (existingUser == null)
-                    return Result.Fail<User>("User not found."); 
+                    return Result.Fail<User>("User not found.");
 
                 // Update properties
                 existingUser.username = updatedUser.username;
-                existingUser.gitId = updatedUser.gitId;
                 existingUser.avatar = updatedUser.avatar;
 
                 _context.Users.Update(existingUser);
                 await _context.SaveChangesAsync();
 
-                return Result.Ok(existingUser); 
+                return Result.Ok(existingUser);
             }
             catch (Exception ex)
             {
@@ -75,14 +65,17 @@ namespace Service_User.Repositories
             }
         }
 
-        // Delete
-        public async Task<Result> DeleteUserAsync(Guid userId)
+        // Delete - Ensure the user can only delete their own data
+        public async Task<Result> DeleteUserAsync(Guid userId, Guid requesterId)
         {
+            if (userId != requesterId)
+                return Result.Fail("Unauthorized access: You can only delete your own data.");
+
             try
             {
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.id == userId);
-                
+
                 if (user == null)
                     return Result.Fail("User not found.");
 
@@ -94,20 +87,6 @@ namespace Service_User.Repositories
             catch (Exception ex)
             {
                 return Result.Fail($"Error deleting user: {ex.Message}");
-            }
-        }
-
-        // Get all users
-        public async Task<Result<IQueryable<User>>> GetAllUsersAsync()
-        {
-            try
-            {
-                var users = _context.Users.AsQueryable();
-                return Result.Ok(users);
-            }
-            catch (Exception ex)
-            {
-                return Result.Fail<IQueryable<User>>($"Error retrieving users: {ex.Message}");
             }
         }
     }
