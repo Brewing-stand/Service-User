@@ -1,42 +1,95 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Service_User.Models;
+using Service_User.DTOs;
+using Service_User.Repositories;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using FluentResults;
 
 namespace Service_User.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        // GET: api/<UserController>
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
+
+        public UserController(IUserRepository userRepository, IMapper mapper)
+        {
+            _userRepository = userRepository;
+            _mapper = mapper;
+        }
+
+        /// <summary>
+        /// Gets the authenticated user's ID from the JWT.
+        /// </summary>
+        private Result<Guid> GetUserId()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Guid.TryParse(idClaim, out var userId) ? Result.Ok(userId) : Result.Fail<Guid>("Invalid user ID.");
+        }
+
+        // GET api/<UserController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
+
+            var result = await _userRepository.GetUserByIdAsync(userIdResult.Value);
+            if (result.IsSuccess)
+            {
+                // Map User model to UserResponseDto
+                var userResponseDto = _mapper.Map<UserResponseDto>(result.Value);
+                return Ok(userResponseDto);
+            }
+            else
+            {
+                return NotFound(result.Errors);
+            }
         }
 
-        // GET api/<UserController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // PUT api/<UserController>
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] UserRequestDto userRequestDto)
         {
-            return "value";
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
+
+            // Map UserRequestDto to User model
+            var updatedUser = _mapper.Map<User>(userRequestDto);
+
+            var result = await _userRepository.UpdateUserAsync(userIdResult.Value, updatedUser);
+            if (result.IsSuccess)
+            {
+                // Map updated User model to UserResponseDto
+                var userResponseDto = _mapper.Map<UserResponseDto>(result.Value);
+                return Ok(userResponseDto);
+            }
+            else
+            {
+                return NotFound(result.Errors);
+            }
         }
 
-        // POST api/<UserController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        // DELETE api/<UserController>
+        [HttpDelete]
+        public async Task<IActionResult> Delete()
         {
-        }
+            var userIdResult = GetUserId();
+            if (userIdResult.IsFailed)
+                return Unauthorized(userIdResult.Errors);
 
-        // PUT api/<UserController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var result = await _userRepository.DeleteUserAsync(userIdResult.Value);
+            if (result.IsSuccess)
+                return NoContent(); // 204 No Content
+            else
+                return NotFound(result.Errors);
         }
     }
 }
