@@ -12,6 +12,17 @@ using Swashbuckle.AspNetCore.Filters;
 var builder = WebApplication.CreateBuilder(args);
 var corsPolicy = "CorsPolicy";
 
+// Load configuration from alternate appsettings file in production
+var environment = builder.Environment.EnvironmentName; // e.g., "Development", "Production"
+var configFileName = environment == "Production"
+    ? "/mnt/secretprovider/appsettings-login-service.json" // Use secrets path in production
+    : "appsettings.json";
+
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile(configFileName, optional: false, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddControllers();
 
